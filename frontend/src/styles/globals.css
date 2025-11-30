@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-neutral-200;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Khan Academy style smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Khan Academy-style buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-medium transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600;
+    @apply focus:ring-primary-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50;
+    @apply focus:ring-neutral-400 shadow-sm hover:shadow;
+  }
+
+  .btn-success {
+    @apply bg-success-500 text-white hover:bg-success-600;
+    @apply focus:ring-success-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-ghost {
+    @apply text-neutral-700 hover:bg-neutral-100;
+    @apply focus:ring-neutral-400;
+  }
+
+  /* Khan Academy-style cards */
+  .card {
+    @apply bg-white rounded-xl border border-neutral-200 shadow-soft;
+    @apply transition-shadow duration-200 hover:shadow-soft-lg;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  /* Khan Academy-style inputs */
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-neutral-300;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply transition-all duration-200;
+    @apply placeholder:text-neutral-400;
+  }
+
+  .input-error {
+    @apply border-error-500 focus:ring-error-500;
+  }
+
+  /* Labels */
+  .label {
+    @apply block text-sm font-medium text-neutral-700 mb-1.5;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-700;
+  }
+
+  .badge-success {
+    @apply bg-success-100 text-success-700;
+  }
+
+  .badge-warning {
+    @apply bg-warning-100 text-warning-700;
+  }
+
+  .badge-error {
+    @apply bg-error-100 text-error-700;
+  }
+
+  /* Progress bar (Khan Academy style) */
+  .progress-bar {
+    @apply w-full bg-neutral-200 rounded-full h-2 overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-primary-500 rounded-full transition-all duration-300;
+  }
+
+  /* Stat cards (Khan Academy style) */
+  .stat-card {
+    @apply card p-6;
+  }
+
+  .stat-label {
+    @apply text-sm font-medium text-neutral-600;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold text-neutral-900 mt-2;
+  }
+
+  .stat-delta {
+    @apply text-sm font-medium mt-2;
+  }
+
+  .stat-delta-positive {
+    @apply text-success-600;
+  }
+
+  .stat-delta-negative {
+    @apply text-error-600;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Custom scrollbar */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: theme('colors.neutral.300');
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.neutral.400');
+  }
+}
