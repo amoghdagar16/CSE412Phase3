@@ -12,6 +12,13 @@ export default function ProfessorDashboard() {
   const [content, setContent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // TA Management
+  const [selectedClassForTA, setSelectedClassForTA] = useState<number | null>(null);
+  const [classTAs, setClassTAs] = useState<any[]>([]);
+  const [availableTAs, setAvailableTAs] = useState<any[]>([]);
+  const [showAssignTAModal, setShowAssignTAModal] = useState(false);
+  const [selectedTAToAssign, setSelectedTAToAssign] = useState<number | null>(null);
+
   // Content creation modal
   const [showCreateContentModal, setShowCreateContentModal] = useState(false);
   const [newContent, setNewContent] = useState({
@@ -76,6 +83,46 @@ export default function ProfessorDashboard() {
         fetchDashboardData();
       } catch (error) {
         console.error('Error deleting content:', error);
+      }
+    }
+  };
+
+  const fetchClassTAs = async (classId: number) => {
+    try {
+      const [tasData, availableData] = await Promise.all([
+        api.getClassTAs(classId),
+        api.getAvailableTAs(),
+      ]);
+      setClassTAs(tasData.tas || []);
+      setAvailableTAs(availableData.users || []);
+      setSelectedClassForTA(classId);
+    } catch (error) {
+      console.error('Error fetching TAs:', error);
+    }
+  };
+
+  const handleAssignTA = async () => {
+    if (!selectedClassForTA || !selectedTAToAssign) return;
+
+    try {
+      await api.assignTA(selectedClassForTA, selectedTAToAssign);
+      setShowAssignTAModal(false);
+      setSelectedTAToAssign(null);
+      fetchClassTAs(selectedClassForTA);
+    } catch (error) {
+      console.error('Error assigning TA:', error);
+    }
+  };
+
+  const handleRemoveTA = async (assignmentId: number) => {
+    if (confirm('Are you sure you want to remove this TA?')) {
+      try {
+        await api.removeTA(assignmentId);
+        if (selectedClassForTA) {
+          fetchClassTAs(selectedClassForTA);
+        }
+      } catch (error) {
+        console.error('Error removing TA:', error);
       }
     }
   };
@@ -274,16 +321,101 @@ export default function ProfessorDashboard() {
             {/* TAs Tab */}
             {activeTab === 'tas' && (
               <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-neutral-900">Teaching Assistants</h2>
-                </div>
-                <div className="text-center py-12">
-                  <Users className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
-                  <p className="text-neutral-600">TA management coming soon</p>
-                  <p className="text-sm text-neutral-500 mt-2">
-                    You'll be able to assign TAs to your classes here
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-neutral-900 mb-4">
+                    Teaching Assistant Management
+                  </h2>
+                  <p className="text-sm text-neutral-600 mb-4">
+                    Select a class to view and manage its teaching assistants
                   </p>
+
+                  {/* Class Selection */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    {classes.map((cls) => (
+                      <button
+                        key={cls.id}
+                        onClick={() => fetchClassTAs(cls.id)}
+                        className={`p-4 border-2 rounded-xl text-left transition-all ${
+                          selectedClassForTA === cls.id
+                            ? 'border-success-500 bg-success-50'
+                            : 'border-neutral-200 hover:border-neutral-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-semibold text-neutral-900">{cls.title}</h3>
+                            <p className="text-sm text-neutral-600">{cls.class_code}</p>
+                          </div>
+                          {selectedClassForTA === cls.id && (
+                            <div className="w-3 h-3 bg-success-500 rounded-full"></div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* TAs for Selected Class */}
+                {selectedClassForTA ? (
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-neutral-900">
+                        Assigned TAs ({classTAs.length})
+                      </h3>
+                      <button
+                        onClick={() => setShowAssignTAModal(true)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Assign TA
+                      </button>
+                    </div>
+
+                    {classTAs.length === 0 ? (
+                      <div className="text-center py-12 bg-neutral-50 rounded-xl">
+                        <Users className="w-12 h-12 text-neutral-400 mx-auto mb-3" />
+                        <p className="text-neutral-600">No TAs assigned yet</p>
+                        <p className="text-sm text-neutral-500 mt-1">
+                          Click "Assign TA" to add teaching assistants
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {classTAs.map((ta) => (
+                          <div
+                            key={ta.assignment_id}
+                            className="border border-neutral-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div>
+                                <h4 className="font-semibold text-neutral-900">{ta.name}</h4>
+                                <p className="text-sm text-neutral-600">{ta.university_id}</p>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveTA(ta.assignment_id)}
+                                className="text-error-600 hover:text-error-800"
+                                title="Remove TA"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <p className="text-sm text-neutral-600 mb-2">{ta.email}</p>
+                            {ta.assigned_at && (
+                              <p className="text-xs text-neutral-500">
+                                Assigned: {new Date(ta.assigned_at).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-neutral-50 rounded-xl">
+                    <Users className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
+                    <p className="text-neutral-600">Select a class to manage TAs</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -402,6 +534,55 @@ export default function ProfessorDashboard() {
                   Create Content
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign TA Modal */}
+      {showAssignTAModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-soft-lg p-8 max-w-lg w-full mx-4">
+            <h3 className="text-2xl font-bold text-neutral-900 mb-6">Assign Teaching Assistant</h3>
+
+            <div className="mb-6">
+              <label className="label">Select User to Assign as TA *</label>
+              <select
+                className="input"
+                value={selectedTAToAssign || ''}
+                onChange={(e) => setSelectedTAToAssign(Number(e.target.value))}
+              >
+                <option value="">Choose a user...</option>
+                {availableTAs
+                  .filter((user) => !classTAs.some((ta) => ta.id === user.id))
+                  .map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} ({user.university_id}) - {user.role.toUpperCase()}
+                    </option>
+                  ))}
+              </select>
+              <p className="text-xs text-neutral-500 mt-2">
+                Students and existing TAs can be assigned as teaching assistants
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowAssignTAModal(false);
+                  setSelectedTAToAssign(null);
+                }}
+                className="btn bg-neutral-200 text-neutral-700 hover:bg-neutral-300 flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAssignTA}
+                disabled={!selectedTAToAssign}
+                className="btn btn-primary flex-1"
+              >
+                Assign TA
+              </button>
             </div>
           </div>
         </div>

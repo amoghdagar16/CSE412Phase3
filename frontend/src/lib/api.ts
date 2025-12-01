@@ -251,6 +251,11 @@ class ApiClient {
     return response.data;
   }
 
+  async getAvailableTAs() {
+    const response = await this.client.get('/api/professor/available-tas');
+    return response.data;
+  }
+
   // ==================== Student Endpoints ====================
   async getStudentClasses() {
     const response = await this.client.get('/api/student/my-classes');

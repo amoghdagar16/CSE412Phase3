@@ -822,6 +822,31 @@ async def get_class_tas(class_id: int, db: Session = Depends(get_db)):
         ]
     }
 
+@app.get("/api/professor/available-tas")
+async def get_available_tas(db: Session = Depends(get_db)):
+    """Get all users who can be assigned as TAs (students and TAs)"""
+    query = text("""
+        SELECT id, university_id, username, name, email, role
+        FROM users
+        WHERE role IN ('student', 'ta') AND is_active = true
+        ORDER BY name
+    """)
+    users = db.execute(query).fetchall()
+
+    return {
+        "users": [
+            {
+                "id": u.id,
+                "university_id": u.university_id,
+                "username": u.username,
+                "name": u.name,
+                "email": u.email,
+                "role": u.role
+            }
+            for u in users
+        ]
+    }
+
 # ==================== Student Endpoints ====================
 
 @app.get("/api/student/my-classes")
